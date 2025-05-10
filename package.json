@@ -1,27 +1,33 @@
 {
-  "name": "auth-service",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "ts-node src/server.ts",
-    "dev": "nodemon --exec ts-node src/server.ts"
-  },
-  "author": "Maulik Joshi",
-  "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "@types/express": "^5.0.1",
-    "@types/http-errors": "^2.0.4",
-    "@types/node": "^22.15.3",
-    "nodemon": "^3.1.10",
-    "prettier": "3.5.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "http-errors": "^2.0.0",
-    "winston": "^3.17.0"
-  }
+    "name": "auth-service",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "start": "cross-env NODE_ENV=prod ts-node src/index.ts",
+        "dev": "cross-env NODE_ENV=dev nodemon --exec ts-node src/server.ts",
+        "typeorm": "typeorm-ts-node-commonjs",
+        "typeorm:generate": "typeorm-ts-node-commonjs migration:create src/migration/$npm_config_name"
+    },
+    "author": "Maulik Joshi",
+    "license": "ISC",
+    "description": "",
+    "devDependencies": {
+        "@types/express": "^5.0.1",
+        "@types/http-errors": "^2.0.4",
+        "@types/node": "^22.15.17",
+        "cross-env": "^7.0.3",
+        "nodemon": "^3.1.10",
+        "prettier": "3.5.3",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "dotenv": "^16.5.0",
+        "express": "^5.1.0",
+        "http-errors": "^2.0.0",
+        "pg": "^8.14.1",
+        "reflect-metadata": "^0.2.2",
+        "typeorm": "0.3.23",
+        "winston": "^3.17.0"
+    }
 }
