@@ -7,6 +7,8 @@ import AuthRouter from "./router/authentication";
 
 const APP = express();
 
+APP.use(express.json());
+
 APP.get("/", (req, res, next) => {
     const error = createHttpError(400, "Bad Request");
     next(error);
