@@ -11,7 +11,7 @@ export class User {
     @Column()
     lastName: string;
 
-    @Column()
+    @Column({ unique: true })
     email: string;
 
     @Column()
@@ -20,6 +20,6 @@ export class User {
     @Column()
     role: string;
 
-    @Column()
+    @Column({ nullable: true, default: 1 })
     tenantId: number;
 }

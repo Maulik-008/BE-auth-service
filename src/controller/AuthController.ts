@@ -20,7 +20,7 @@ export class AuthController {
                 firstName,
                 lastName,
                 email,
-                password: "***",
+                password,
                 role: ROLES.CUSTOMER,
             });
             this.logger.info("User created successfully", { result });

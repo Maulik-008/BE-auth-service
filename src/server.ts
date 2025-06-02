@@ -1,9 +1,11 @@
 import APP from "./app";
 import { CONFIG } from "./config";
+import { AppDataSource } from "./config/data-source";
 import LOGGER from "./config/logger";
 
-const startServer = () => {
+const startServer = async () => {
     try {
+        await AppDataSource.initialize();
         APP.listen(CONFIG.PORT, () => {
             console.log(`Server is running on port ${CONFIG.PORT}`);
             LOGGER.info(`Server is running on port ${CONFIG.PORT}`);
