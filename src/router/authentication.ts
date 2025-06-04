@@ -9,6 +9,7 @@ import { AppDataSource } from "../config/data-source";
 import { User } from "../entity/User";
 import { UserService } from "../services/UserService";
 import LOGGER from "../config/logger";
+import { registerValidator } from "../validator/registerValidator";
 const AuthRouter = express.Router();
 
 const userRepository = AppDataSource.getRepository(User);
@@ -19,7 +20,7 @@ AuthRouter.post("/login", (async (req: Request, res: Response) => {
     await authController.login(req, res);
 }) as unknown as RequestHandler);
 
-AuthRouter.post("/register", (async (
+AuthRouter.post("/register", registerValidator, (async (
     req: Request,
     res: Response,
     next: NextFunction,
