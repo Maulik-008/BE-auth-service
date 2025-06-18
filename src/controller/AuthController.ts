@@ -19,6 +19,7 @@ import {
     REFRESH_TOKEN_EXPIRATION_TIME,
     REFRESH_TOKEN_NAME,
 } from "../constants/appConstants";
+import { AuthRequest } from "../types";
 
 export class AuthController {
     private userService: UserService;
@@ -147,6 +148,29 @@ export class AuthController {
             });
         } catch (error) {
             this.logger.error("Error logging in", { error });
+        }
+    }
+
+    async self(req: AuthRequest, res: Response, next: NextFunction) {
+        const { sub } = req.auth;
+        try {
+            const user = await this.userService.findById(Number(sub));
+            if (!user) {
+                const createError = createHttpError(401, "User not found");
+                next(createError);
+                return;
+            }
+            res.status(200).json({
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+            });
+        } catch (error) {
+            this.logger.error("Error finding user", { error });
+            next(error);
+            return;
         }
     }
 }

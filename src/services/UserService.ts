@@ -41,4 +41,17 @@ export class UserService {
             throw errorData;
         }
     }
+
+    async findById(id: number) {
+        try {
+            const user = await this.userRepository.findOne({
+                where: { id },
+            });
+
+            return user;
+        } catch (error) {
+            const errorData = createHttpError(500, "Failed to find user");
+            throw errorData;
+        }
+    }
 }

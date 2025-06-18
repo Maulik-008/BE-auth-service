@@ -16,4 +16,5 @@ export const CONFIG = {
     JWT: {
         REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     },
+    JWKS_URI: process.env.JWKS_URI,
 };
