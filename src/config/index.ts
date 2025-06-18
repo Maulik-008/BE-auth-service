@@ -13,4 +13,7 @@ export const CONFIG = {
         PASSWORD: process.env.DB_PASSWORD,
         NAME: process.env.DB_NAME,
     },
+    JWT: {
+        REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
+    },
 };

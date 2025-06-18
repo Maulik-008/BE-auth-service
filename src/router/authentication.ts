@@ -10,14 +10,30 @@ import { User } from "../entity/User";
 import { UserService } from "../services/UserService";
 import LOGGER from "../config/logger";
 import { registerValidator } from "../validator/registerValidator";
+import { loginValidator } from "../validator/loginValidator";
+import { CredentialService } from "../services/CredentialService";
+import { RefreshToken } from "../entity/RefreshToken";
+import { TokenService } from "../services/TokenService";
 const AuthRouter = express.Router();
 
 const userRepository = AppDataSource.getRepository(User);
+const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
+const tokenService = new TokenService(refreshTokenRepository);
 const authService = new UserService(userRepository);
-const authController = new AuthController(authService, LOGGER);
+const credentialService = new CredentialService();
+const authController = new AuthController(
+    authService,
+    LOGGER,
+    credentialService,
+    tokenService,
+);
 
-AuthRouter.post("/login", (async (req: Request, res: Response) => {
-    await authController.login(req, res);
+AuthRouter.post("/login", loginValidator, (async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    await authController.login(req, res, next);
 }) as unknown as RequestHandler);
 
 AuthRouter.post("/register", registerValidator, (async (
