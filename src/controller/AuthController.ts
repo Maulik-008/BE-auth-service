@@ -161,11 +161,8 @@ export class AuthController {
                 return;
             }
             res.status(200).json({
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
+                ...user,
+                password: undefined,
             });
         } catch (error) {
             this.logger.error("Error finding user", { error });
