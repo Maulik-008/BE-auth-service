@@ -5,9 +5,13 @@ import createHttpError, { HttpError } from "http-errors";
 import cookieParser from "cookie-parser";
 import LOGGER from "./config/logger";
 import AuthRouter from "./router/authentication";
+import path from "path";
+import fs from "fs";
 
 const APP = express();
 
+// Use absolute path for static files
+APP.use(express.static(path.join(__dirname, "../public")));
 APP.use(cookieParser());
 APP.use(express.json());
 
@@ -18,10 +22,25 @@ APP.get("/", (req, res, next) => {
 
 APP.use("/auth", AuthRouter);
 
+// Explicitly serve the JWKS file
+APP.get("/.well-known/jwks.json", (req, res) => {
+    const jwksPath = path.join(__dirname, "../public/.well-known/jwks.json");
+
+    // Read file directly and send as JSON
+    try {
+        const jwksContent = fs.readFileSync(jwksPath, "utf8");
+        res.setHeader("Content-Type", "application/json");
+        res.send(jwksContent);
+    } catch (err) {
+        console.error("Error reading JWKS file:", err);
+        res.status(500).send("Error serving JWKS file");
+    }
+});
+
 // Error handling middleware
 APP.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
     LOGGER.error(err.message);
-    res.status(err.status || 500).json({
+    res.status(err.status || err.statusCode || 500).json({
         errors: [
             {
                 path: "",

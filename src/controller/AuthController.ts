@@ -152,9 +152,10 @@ export class AuthController {
     }
 
     async self(req: AuthRequest, res: Response, next: NextFunction) {
-        const { sub } = req.auth;
+        const { id } = req.auth;
+
         try {
-            const user = await this.userService.findById(Number(sub));
+            const user = await this.userService.findById(Number(id));
             if (!user) {
                 const createError = createHttpError(401, "User not found");
                 next(createError);
