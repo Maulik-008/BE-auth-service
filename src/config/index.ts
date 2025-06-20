@@ -6,6 +6,7 @@ config({ path: path.join(__dirname, `../../.env.${process.env.NODE_ENV}`) });
 export const CONFIG = {
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
+    REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
     DB: {
         HOST: process.env.DB_HOST,
         PORT: process.env.DB_PORT,

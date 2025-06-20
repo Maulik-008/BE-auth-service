@@ -56,17 +56,19 @@ export class AuthController {
                 role: ROLES.CUSTOMER,
             });
             this.logger.info("User created successfully", { result });
-            const accessToken = await this.tokenService.generateAccessToken(
-                String(result.id),
-            );
+            const accessToken = await this.tokenService.generateAccessToken({
+                sub: String(result.id),
+                role: result.role,
+                name: `${result.firstName} ${result.lastName}`,
+            });
 
             const refreshTokenId =
                 await this.tokenService.persistRefreshToken(result);
 
-            const refreshToken = await this.tokenService.generateRefreshToken(
-                String(result.id),
-                String(refreshTokenId),
-            );
+            const refreshToken = await this.tokenService.generateRefreshToken({
+                sub: String(result.id),
+                id: String(refreshTokenId),
+            });
 
             res.cookie(ACCESS_TOKEN_NAME, accessToken, {
                 domain: "localhost",
@@ -121,13 +123,18 @@ export class AuthController {
             }
 
             const generateAccessToken =
-                await this.tokenService.generateAccessToken(String(user.id));
+                await this.tokenService.generateAccessToken({
+                    sub: String(user.id),
+                    role: user.role,
+                    name: `${user.firstName} ${user.lastName}`,
+                });
             const refreshTokenId =
                 await this.tokenService.persistRefreshToken(user);
-            const refreshToken = await this.tokenService.generateRefreshToken(
-                String(user.id),
-                String(refreshTokenId),
-            );
+
+            const refreshToken = await this.tokenService.generateRefreshToken({
+                sub: String(user.id),
+                id: String(refreshTokenId.id),
+            });
             res.cookie("accessToken", generateAccessToken, {
                 domain: "localhost",
                 sameSite: "strict",
@@ -152,7 +159,7 @@ export class AuthController {
     }
 
     async self(req: AuthRequest, res: Response, next: NextFunction) {
-        const { id } = req.auth;
+        const { sub: id } = req.auth;
 
         try {
             const user = await this.userService.findById(Number(id));
@@ -164,6 +171,56 @@ export class AuthController {
             res.status(200).json({
                 ...user,
                 password: undefined,
+            });
+        } catch (error) {
+            this.logger.error("Error finding user", { error });
+            next(error);
+            return;
+        }
+    }
+    async refreshToken(req: AuthRequest, res: Response, next: NextFunction) {
+        const { sub: userId, id: refreshTokenOldId } = req.auth;
+        const user = await this.userService.findById(Number(userId));
+        if (!user) {
+            const createError = createHttpError(401, "User not found");
+            next(createError);
+            return;
+        }
+
+        try {
+            const generateAccessToken =
+                await this.tokenService.generateAccessToken({
+                    sub: String(user.id),
+                    role: user.role,
+                    name: `${user.firstName} ${user.lastName}`,
+                });
+            const refreshTokenId =
+                await this.tokenService.persistRefreshToken(user);
+
+            await this.tokenService.deleteRefreshToken(
+                String(refreshTokenOldId),
+            );
+            const refreshToken = await this.tokenService.generateRefreshToken({
+                sub: String(user.id),
+                id: String(refreshTokenId.id),
+            });
+            res.cookie("accessToken", generateAccessToken, {
+                domain: "localhost",
+                sameSite: "strict",
+                httpOnly: true,
+                maxAge: ACCESS_TOKEN_EXPIRATION_TIME, // 1 hour
+            });
+            res.cookie("refreshToken", refreshToken, {
+                domain: "localhost",
+                sameSite: "strict",
+                httpOnly: true,
+                maxAge: REFRESH_TOKEN_EXPIRATION_TIME, // 1 year
+            });
+            res.status(200).json({
+                id: user.id,
+                accessToken: generateAccessToken,
+                refreshToken: refreshToken,
+                message: "Refresh token successful",
             });
         } catch (error) {
             this.logger.error("Error finding user", { error });

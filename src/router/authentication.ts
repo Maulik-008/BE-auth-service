@@ -16,6 +16,7 @@ import { RefreshToken } from "../entity/RefreshToken";
 import { TokenService } from "../services/TokenService";
 import authentication from "../middlewares/authentication";
 import { AuthRequest } from "../types";
+import validateRefreshToken from "../middlewares/validateRefreshToken";
 const AuthRouter = express.Router();
 
 const userRepository = AppDataSource.getRepository(User);
@@ -44,6 +45,14 @@ AuthRouter.post("/register", registerValidator, (async (
     next: NextFunction,
 ) => {
     await authController.register(req, res, next);
+}) as unknown as RequestHandler);
+
+AuthRouter.post("/refresh-token", validateRefreshToken, (async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+) => {
+    await authController.refreshToken(req, res, next);
 }) as unknown as RequestHandler);
 
 AuthRouter.get("/self", authentication, (async (

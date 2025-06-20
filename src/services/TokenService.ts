@@ -1,4 +1,4 @@
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 import { CONFIG } from "../config";
 import { Repository } from "typeorm";
 import { RefreshToken } from "../entity/RefreshToken";
@@ -10,7 +10,11 @@ import fs from "fs";
 export class TokenService {
     constructor(private refreshTokenRepository: Repository<RefreshToken>) {}
 
-    async generateAccessToken(userId: string) {
+    async generateAccessToken(payload: {
+        sub: string;
+        role: string;
+        name: string;
+    }) {
         let privateKey: Buffer;
 
         try {
@@ -22,18 +26,18 @@ export class TokenService {
             throw e;
         }
 
-        return sign({ id: userId }, privateKey, {
+        return sign(payload, privateKey, {
             expiresIn: "1h",
             algorithm: "RS256",
             issuer: "auth-service",
         });
     }
-    async generateRefreshToken(userId: string, refreshTokenId: string) {
-        return sign({ id: userId }, CONFIG.JWT.REFRESH_TOKEN_SECRET!, {
+    async generateRefreshToken(payload: { sub: string; id: string }) {
+        return sign(payload, CONFIG.JWT.REFRESH_TOKEN_SECRET!, {
             expiresIn: "1y",
             algorithm: "HS256",
             issuer: "auth-service",
-            jwtid: String(refreshTokenId),
+            jwtid: String(payload.id),
         });
     }
     async persistRefreshToken(user: User) {
@@ -41,5 +45,9 @@ export class TokenService {
             user: user,
             expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
         });
+    }
+
+    async deleteRefreshToken(id: string) {
+        return await this.refreshTokenRepository.delete(Number(id));
     }
 }
