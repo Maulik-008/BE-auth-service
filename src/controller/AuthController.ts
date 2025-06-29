@@ -157,6 +157,21 @@ export class AuthController {
             this.logger.error("Error logging in", { error });
         }
     }
+    async logout(req: AuthRequest, res: Response, next: NextFunction) {
+        const { sub: id } = req.auth;
+
+        try {
+            this.tokenService.deleteRefreshToken(id);
+            res.clearCookie(ACCESS_TOKEN_NAME);
+            res.clearCookie(REFRESH_TOKEN_NAME);
+
+            res.json({
+                message: "User LoggedOut Successfully",
+            });
+        } catch (error) {
+            this.logger.error("Error logging in", { error });
+        }
+    }
 
     async self(req: AuthRequest, res: Response, next: NextFunction) {
         const { sub: id } = req.auth;

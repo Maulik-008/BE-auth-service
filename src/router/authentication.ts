@@ -17,6 +17,7 @@ import { TokenService } from "../services/TokenService";
 import authentication from "../middlewares/authentication";
 import { AuthRequest } from "../types";
 import validateRefreshToken from "../middlewares/validateRefreshToken";
+import persistRefreshToken from "../middlewares/persistRefreshToken";
 const AuthRouter = express.Router();
 
 const userRepository = AppDataSource.getRepository(User);
@@ -37,6 +38,14 @@ AuthRouter.post("/login", loginValidator, (async (
     next: NextFunction,
 ) => {
     await authController.login(req, res, next);
+}) as unknown as RequestHandler);
+
+AuthRouter.get("/logout", persistRefreshToken, (async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+) => {
+    await authController.logout(req, res, next);
 }) as unknown as RequestHandler);
 
 AuthRouter.post("/register", registerValidator, (async (
