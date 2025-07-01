@@ -4,7 +4,9 @@
     "main": "index.js",
     "scripts": {
         "start": "cross-env NODE_ENV=prod ts-node src/index.ts",
-        "dev": " sudo docker run --rm --name mernpg-container -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -v mern-postgres:/var/lib/postgresql/data -p 5434:5432 -d postgres && cross-env NODE_ENV=dev nodemon --exec ts-node src/server.ts",
+        "dev": "cross-env NODE_ENV=dev nodemon --exec ts-node src/server.ts",
+        "db:start": " sudo docker run --rm --name mernpg-container -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -v mern-postgres:/var/lib/postgresql/data -p 5434:5432 -d postgres",
+        "db:stop": "sudo docker stop mernpg-container",
         "migration:revert": "typeorm-ts-node-commonjs migration:revert",
         "migration:generate": "typeorm-ts-node-commonjs migration:generate",
         "migration:run": "typeorm-ts-node-commonjs migration:run",
