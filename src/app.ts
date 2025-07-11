@@ -7,6 +7,7 @@ import LOGGER from "./config/logger";
 import AuthRouter from "./router/authentication";
 import path from "path";
 import fs from "fs";
+import TenantRouter from "./router/tenant";
 
 const APP = express();
 
@@ -21,6 +22,7 @@ APP.get("/", (req, res, next) => {
 });
 
 APP.use("/auth", AuthRouter);
+APP.use("/tenant", TenantRouter);
 
 // Explicitly serve the JWKS file
 APP.get("/.well-known/jwks.json", (req, res) => {
@@ -35,6 +37,10 @@ APP.get("/.well-known/jwks.json", (req, res) => {
         console.error("Error reading JWKS file:", err);
         res.status(500).send("Error serving JWKS file");
     }
+});
+
+APP.get("/health", (req, res) => {
+    res.status(200).json({ status: "OK" });
 });
 
 // Error handling middleware

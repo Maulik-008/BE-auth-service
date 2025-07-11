@@ -15,12 +15,14 @@ export class TokenService {
         role: string;
         name: string;
     }) {
-        let privateKey: Buffer;
+        let privateKey: string;
+        if (CONFIG.JWT.PRIVATE_KEY!) {
+            const error = createHttpError(500, "Private key is not configured");
+            throw error;
+        }
 
         try {
-            privateKey = fs.readFileSync(
-                path.join(__dirname, "../../certs/private.pem"),
-            );
+            privateKey = CONFIG.JWT.PRIVATE_KEY!;
         } catch (error) {
             const e = createHttpError(500, "Error reading private key");
             throw e;

@@ -1,15 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { sign } from "jsonwebtoken";
-import fs from "fs";
+
 import { UserService } from "../services/UserService";
 import { Logger } from "winston";
 import { ROLES } from "../constants";
 import { validationResult } from "express-validator";
 import createHttpError from "http-errors";
-import path from "path";
-import { CONFIG } from "../config";
-import { AppDataSource } from "../config/data-source";
-import { RefreshToken } from "../entity/RefreshToken";
 
 import { CredentialService } from "../services/CredentialService";
 import { TokenService } from "../services/TokenService";
@@ -97,14 +92,14 @@ export class AuthController {
 
     async login(req: Request, res: Response, next: NextFunction) {
         const { email, password } = req.body;
-
+        console.log("first");
         const error = validationResult(req);
         if (!error.isEmpty()) {
             return res.status(400).json({ errors: error.array() });
         }
 
         try {
-            const user = await this.userService.findByEmail(email);
+            const user = await this.userService.findByEmailPassword(email);
             if (!user) {
                 const errorData = createHttpError(401, "Invalid credentials");
                 next(errorData);

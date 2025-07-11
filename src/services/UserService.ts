@@ -41,6 +41,26 @@ export class UserService {
             throw errorData;
         }
     }
+    async findByEmailPassword(email: string) {
+        try {
+            const user = await this.userRepository.findOne({
+                where: { email },
+                select: [
+                    "id",
+                    "email",
+                    "password",
+                    "role",
+                    "firstName",
+                    "lastName",
+                ],
+            });
+
+            return user;
+        } catch (error) {
+            const errorData = createHttpError(500, "Failed to find user");
+            throw errorData;
+        }
+    }
 
     async findById(id: number) {
         try {
@@ -54,4 +74,29 @@ export class UserService {
             throw errorData;
         }
     }
+
+    async update(id: number, payload: Partial<UserData>) {
+        try {
+            const isUserExists = await this.findById(id);
+            if (!isUserExists) {
+                throw createHttpError(400, "User is not Exits with this id");
+            }
+            return await this.userRepository.update({ id }, payload);
+        } catch (error) {
+            error = createHttpError(500, "Failed to update user");
+            throw error;
+        }
+    }
+    async delete(id: number) {
+        try {
+            return await this.userRepository.delete({ id });
+        } catch (err) {
+            const error = createHttpError(
+                500,
+                `Failed to delete user with id ${id} and error: ${err}`,
+            );
+            throw error;
+        }
+    }
+    async getAll() {}
 }
