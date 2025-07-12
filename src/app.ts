@@ -3,6 +3,7 @@ import "reflect-metadata";
 import express, { NextFunction, Request, Response } from "express";
 import createHttpError, { HttpError } from "http-errors";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import LOGGER from "./config/logger";
 import AuthRouter from "./router/authentication";
 import path from "path";
@@ -11,6 +12,13 @@ import TenantRouter from "./router/tenant";
 
 const APP = express();
 
+APP.use(
+    cors({
+        origin: "*",
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    }),
+);
 // Use absolute path for static files
 APP.use(express.static(path.join(__dirname, "../public")));
 APP.use(cookieParser());
