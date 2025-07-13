@@ -150,6 +150,7 @@ export class AuthController {
             });
         } catch (error) {
             this.logger.error("Error logging in", { error });
+            next(error);
         }
     }
     async logout(req: AuthRequest, res: Response, next: NextFunction) {

@@ -7,23 +7,25 @@ import LOGGER from "../config/logger";
 import authentication from "../middlewares/authentication";
 import { routeProtection } from "../middlewares/routeProtection";
 import { ROLES } from "../constants";
+import listUserValidator from "../validator/listUserValidator";
 
 const userRepo = AppDataSource.getRepository(User);
 const userService = new UserService(userRepo);
 
 const userController = new UserController(userService, LOGGER);
 
-const router = express.Router();
+const UserRouter = express.Router();
 
-router.get(
+UserRouter.get(
     "/",
     authentication,
+    listUserValidator,
     routeProtection([ROLES.ADMIN]),
     async (req: Request, res: Response, next: NextFunction) => {
         await userController.getAll(req, res, next);
     },
 );
-router.get(
+UserRouter.get(
     "/:id",
     authentication,
     routeProtection([ROLES.ADMIN]),
@@ -31,7 +33,7 @@ router.get(
         await userController.getById(req, res, next);
     },
 );
-router.post(
+UserRouter.post(
     "/",
     authentication,
     routeProtection([ROLES.ADMIN]),
@@ -39,7 +41,7 @@ router.post(
         await userController.create(req, res, next);
     },
 );
-router.patch(
+UserRouter.patch(
     "/:id",
     authentication,
     routeProtection([ROLES.ADMIN]),
@@ -47,7 +49,7 @@ router.patch(
         await userController.update(req, res, next);
     },
 );
-router.delete(
+UserRouter.delete(
     "/:id",
     authentication,
     routeProtection([ROLES.ADMIN]),
@@ -55,3 +57,5 @@ router.delete(
         await userController.delete(req, res, next);
     },
 );
+
+export default UserRouter;

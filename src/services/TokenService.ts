@@ -16,7 +16,8 @@ export class TokenService {
         name: string;
     }) {
         let privateKey: string;
-        if (CONFIG.JWT.PRIVATE_KEY!) {
+
+        if (!CONFIG.JWT.PRIVATE_KEY) {
             const error = createHttpError(500, "Private key is not configured");
             throw error;
         }
@@ -29,7 +30,7 @@ export class TokenService {
         }
 
         return sign(payload, privateKey, {
-            expiresIn: "1h",
+            expiresIn: "36hr",
             algorithm: "RS256",
             issuer: "auth-service",
         });

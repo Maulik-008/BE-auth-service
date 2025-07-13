@@ -9,6 +9,7 @@ import AuthRouter from "./router/authentication";
 import path from "path";
 import fs from "fs";
 import TenantRouter from "./router/tenant";
+import UserRouter from "./router/user";
 
 const APP = express();
 
@@ -31,6 +32,7 @@ APP.get("/", (req, res, next) => {
 
 APP.use("/auth", AuthRouter);
 APP.use("/tenant", TenantRouter);
+APP.use("/user", UserRouter);
 
 // Explicitly serve the JWKS file
 APP.get("/.well-known/jwks.json", (req, res) => {
