@@ -6,7 +6,14 @@ import bcrypt from "bcryptjs";
 
 export class UserService {
     constructor(private userRepository: Repository<User>) {}
-    async create({ firstName, lastName, email, password, role }: UserData) {
+    async create({
+        firstName,
+        lastName,
+        email,
+        password,
+        role,
+        tenantId,
+    }: UserData) {
         try {
             const existingUser = await this.userRepository.findOne({
                 where: { email },
@@ -21,6 +28,7 @@ export class UserService {
                 email,
                 password: hashedPassword,
                 role,
+                tenant: tenantId ? { id: tenantId } : undefined,
             });
             return result;
         } catch (error) {
@@ -30,49 +38,34 @@ export class UserService {
     }
 
     async findByEmail(email: string) {
-        try {
-            const user = await this.userRepository.findOne({
-                where: { email },
-            });
+        const user = await this.userRepository.findOne({
+            where: { email },
+        });
 
-            return user;
-        } catch (error) {
-            const errorData = createHttpError(500, "Failed to find user");
-            throw errorData;
-        }
+        return user;
     }
     async findByEmailPassword(email: string) {
-        try {
-            const user = await this.userRepository.findOne({
-                where: { email },
-                select: [
-                    "id",
-                    "email",
-                    "password",
-                    "role",
-                    "firstName",
-                    "lastName",
-                ],
-            });
+        const user = await this.userRepository.findOne({
+            where: { email },
+            select: [
+                "id",
+                "email",
+                "password",
+                "role",
+                "firstName",
+                "lastName",
+            ],
+        });
 
-            return user;
-        } catch (error) {
-            const errorData = createHttpError(500, "Failed to find user");
-            throw errorData;
-        }
+        return user;
     }
 
     async findById(id: number) {
-        try {
-            const user = await this.userRepository.findOne({
-                where: { id },
-            });
-
-            return user;
-        } catch (error) {
-            const errorData = createHttpError(500, "Failed to find user");
-            throw errorData;
-        }
+        return await this.userRepository.findOne({
+            where: { id },
+            relations: { tenant: true },
+            select: { tenant: { id: true, name: true } },
+        });
     }
 
     async update(id: number, payload: Partial<UserData>) {
@@ -88,42 +81,30 @@ export class UserService {
         }
     }
     async delete(id: number) {
-        try {
-            return await this.userRepository.delete({ id });
-        } catch (err) {
-            const error = createHttpError(
-                500,
-                `Failed to delete user with id ${id} and error: ${err}`,
-            );
-            throw error;
-        }
+        return await this.userRepository.delete(id);
     }
     async getAll(params: UserQueryParams) {
         const queryBuilder = this.userRepository.createQueryBuilder("user");
 
-        try {
-            const searchTerm = `%${params.q}%`;
-            queryBuilder.where(
-                new Brackets((qb) => {
-                    qb.where(
-                        "CONCAT(user.firstName, ' ', user.lastName) ILike :q",
-                        { q: searchTerm },
-                    ).orWhere("user.email ILike :q", { q: searchTerm });
-                }),
-            );
+        const searchTerm = `%${params.q}%`;
+        queryBuilder.where(
+            new Brackets((qb) => {
+                qb.where(
+                    "CONCAT(user.firstName, ' ', user.lastName) ILike :q",
+                    { q: searchTerm },
+                ).orWhere("user.email ILike :q", { q: searchTerm });
+            }),
+        );
 
-            if (params.role) {
-                queryBuilder.andWhere("user.role=:role", { role: params.role });
-            }
-
-            return await queryBuilder
-                .skip((params.currentPage - 1) * params.perPage)
-                .take(params.perPage)
-                .orderBy("user.id", "DESC")
-                .getManyAndCount();
-        } catch (error) {
-            const errorData = createHttpError(500, "Failed to get all users");
-            throw errorData;
+        if (params.role) {
+            queryBuilder.andWhere("user.role=:role", { role: params.role });
         }
+
+        return await queryBuilder
+            .leftJoinAndSelect("user.tenant", "tenant")
+            .skip((params.currentPage - 1) * params.perPage)
+            .take(params.perPage)
+            .orderBy("user.id", "DESC")
+            .getManyAndCount();
     }
 }

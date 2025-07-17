@@ -14,6 +14,7 @@ import { routeProtection } from "../middlewares/routeProtection";
 import { CreateTenantRequest } from "../types";
 import { ROLES } from "../constants";
 import { tenantValidator } from "../validator/tenantValidator";
+import { tenantListValidator } from "../validator/tenantListValidator";
 
 const TenantRouter = express.Router();
 
@@ -60,6 +61,7 @@ TenantRouter.get(
     "/",
     authentication as RequestHandler,
     routeProtection([ROLES.ADMIN]),
+    tenantListValidator,
     (async (req: CreateTenantRequest, res: Response, next: NextFunction) => {
         await tenantController.getList(req, res, next);
     }) as unknown as RequestHandler,

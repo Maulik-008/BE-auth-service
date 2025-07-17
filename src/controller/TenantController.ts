@@ -6,9 +6,9 @@ import express, {
 } from "express";
 
 import { TenantService } from "../services/TenantService";
-import { AuthRequest, CreateTenantRequest } from "../types";
+import { AuthRequest, CreateTenantRequest, TenantQueryParams } from "../types";
 import { Logger } from "winston";
-import { validationResult } from "express-validator";
+import { matchedData, validationResult } from "express-validator";
 import createHttpError from "http-errors";
 
 export class TenantController {
@@ -88,6 +88,16 @@ export class TenantController {
     async delete(req: Request, res: Response, next: NextFunction) {
         const { id } = req.params;
         try {
+            const getTenant = await this.tenantService.findById(Number(id));
+
+            if (!getTenant) {
+                next(
+                    createHttpError(
+                        400,
+                        "This Tenant not Exists or Already deleted",
+                    ),
+                );
+            }
             await this.tenantService.delete(Number(id));
             res.status(200).json({
                 message: "Tenant deleted successfully",
@@ -98,12 +108,39 @@ export class TenantController {
     }
     async getList(req: CreateTenantRequest, res: Response, next: NextFunction) {
         try {
+            const getValidData = matchedData(req, {
+                onlyValidData: true,
+            }) as TenantQueryParams;
+            const [tenants, counts] = await this.tenantService.getList(
+                getValidData as TenantQueryParams,
+            );
+
             res.status(200).json({
-                message: "Tenant list fetched successfully",
+                data: tenants,
+                currentPage: getValidData.currentPage,
+                perPage: getValidData.perPage,
+                total: counts,
             });
         } catch (error) {
             next(error);
         }
     }
-    async getById(req: Request, res: Response, next: NextFunction) {}
+    async getById(req: Request, res: Response, next: NextFunction) {
+        const { id } = req.params;
+        if (!id) {
+            next(createHttpError(400, "Please send correct id"));
+        }
+        try {
+            const getIdData = await this.tenantService.findById(Number(id));
+            if (!getIdData) {
+                next(createHttpError(400, "User not Exists"));
+            }
+            res.json({
+                message: "User Data Fetched Successfully",
+                data: getIdData,
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
 }

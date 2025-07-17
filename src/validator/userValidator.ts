@@ -31,6 +31,16 @@ export const userValidator = checkSchema({
         notEmpty: true,
         errorMessage: "LastName is required",
     },
+    tenantId: {
+        in: "body",
+        isString: false,
+        optional: true,
+        customSanitizer: {
+            options: (value) => {
+                return value ? Number(value) : undefined;
+            },
+        },
+    },
     role: {
         in: "body",
         isString: true,

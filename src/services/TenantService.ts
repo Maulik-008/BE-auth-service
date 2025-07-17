@@ -1,6 +1,6 @@
 import { Repository } from "typeorm";
 import { Tenant } from "../entity/Tenant";
-import { CreateTenantRequest, ITenant } from "../types";
+import { CreateTenantRequest, ITenant, TenantQueryParams } from "../types";
 import { NextFunction, Response } from "express";
 import createHttpError from "http-errors";
 
@@ -37,45 +37,31 @@ export class TenantService {
         }
     }
     async delete(id: number) {
-        try {
-            const tenant = await this.findById(id);
-            if (!tenant) {
-                throw new Error("Tenant not found");
-            }
-            await this.tenantRepository.delete(id);
-        } catch (error) {
-            throw createHttpError(400, "Failed to delete tenant");
-        }
+        return await this.tenantRepository.delete(id);
     }
-    async getList(
-        req: CreateTenantRequest,
-        res: Response,
-        next: NextFunction,
-    ) {}
+    async getList(params: TenantQueryParams) {
+        const { q, currentPage, perPage } = params;
+        const searchTerm = `%${q}%`;
+
+        const queryBuilder = this.tenantRepository.createQueryBuilder("Tenant");
+        queryBuilder.where((qb) => {
+            qb.where(`Tenant.name ILike :q`, { q: searchTerm });
+        });
+
+        return await queryBuilder
+            .skip((currentPage - 1) * perPage)
+            .take(perPage)
+            .orderBy("Tenant.createdAt", "DESC")
+            .getManyAndCount();
+    }
     async findById(id: string | number | undefined | null = undefined) {
-        try {
-            if (!id) {
-                throw new Error("ID is required to find Tenant");
-            }
-
-            const result = await this.tenantRepository.findOne({
-                where: { id: Number(id) },
-            });
-
-            return result;
-        } catch (error) {
-            throw new Error("Failed to find Tenant by ID");
-        }
+        return await this.tenantRepository.findOne({
+            where: { id: Number(id) },
+        });
     }
     async findByName(name: string) {
-        try {
-            const result = await this.tenantRepository.findOne({
-                where: { name },
-            });
-
-            return result;
-        } catch (error) {
-            throw new Error("Failed to find Tenant");
-        }
+        return await this.tenantRepository.findOne({
+            where: { name },
+        });
     }
 }
